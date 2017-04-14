@@ -6,7 +6,7 @@
 /*   By: niludwig <niludwig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/04/06 14:23:00 by niludwig          #+#    #+#             */
-/*   Updated: 2017/04/07 02:00:31 by niludwig         ###   ########.fr       */
+/*   Updated: 2017/04/14 01:35:28 by niludwig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,222 @@ static int		ft_jump_nextline(char *str, int i)
 	return (i);
 }
 
+static int		ft_return(char *int_min, char *int_max, int ret)
+{
+	free(int_min);
+	free(int_max);
+	return (ret);
+}
+
+static int		ft_strisint(char *nbr)
+{
+	int		i;
+	char	*int_min;
+	char	*int_max;
+
+	i = -1;
+	int_min = ft_itoa(INT_MIN);
+	int_max = ft_itoa(INT_MAX);
+	if ((nbr[0] != '-' && ft_strlen(nbr) < ft_strlen(int_max)) ||
+		(nbr[0] == '-' && ft_strlen(nbr) < ft_strlen(int_min)))
+		return (ft_return(int_min, int_max, 1));
+	else if ((nbr[0] != '-' && ft_strlen(nbr) > ft_strlen(int_max)) ||
+			(nbr[0] == '-' && ft_strlen(nbr) > ft_strlen(int_min)))
+		return (ft_return(int_min, int_max, 0));
+	if (nbr[0] == '-' && ++i + 1)
+		while (nbr[++i] != '\0')
+			if (nbr[i] > int_min[i])
+				return (ft_return(int_min, int_max, 0));
+	if (nbr[0] != '-')
+		while (nbr[++i] != '\0')
+			if (nbr[i] > int_max[i])
+				return (ft_return(int_min, int_max, 0));
+	if (nbr[i] == '\0')
+		return (ft_return(int_min, int_max, 1));
+	return (ft_return(int_min, int_max, 0));
+}
+
+int		ft_is_reg(char *param)
+{
+	if (param[0] == 'r')
+	{
+		if (ft_strisint(param + 1))
+		{
+			if (ft_atoi(param + 1) >= 0 && ft_atoi(param + 1) <= 99)
+				return (1);
+		}
+	}
+	return (0);
+}
+
+int		ft_is_ind(t_list *labels, char *param)
+{
+	int				i;
+	t_list			*elem;
+	t_label			*tmp;
+
+	i = 0;
+	if (param[i] == '-')
+		i++;
+	if (param[i] == '\0')
+		return (0);
+	if (param[i] == LABEL_CHAR)
+	{
+		elem = labels;
+		while (elem)
+		{
+			tmp = elem->content;
+			if (!ft_strncmp(param + 1, tmp->label, ft_strlen(tmp->label) - 1))
+				return (1);
+			elem = elem->next;
+		}
+		return (0);
+	}
+	while (param[i])
+		if (!ft_isdigit(param[i++]))
+			return (0);
+	return (1);
+}
+
+int		ft_is_dir(t_list *labels, char *param)
+{
+	unsigned int	i;
+
+	i = 0;
+	if (param[i] == DIRECT_CHAR)
+		return (ft_is_ind(labels, param + i + 1));
+	return (0);
+}
+
+int		ft_validate_param(t_list *labels, char *ins, int p_type, int i)
+{
+	int		flag;
+
+	flag = 0;
+	if (p_type & T_REG)
+		if (ft_is_reg(ins))
+			flag = 1;
+	if (p_type & T_DIR)
+		if (ft_is_dir(labels, ins))
+			flag = 1;
+	if (p_type & T_IND)
+		if (ft_is_ind(labels, ins))
+			flag = 1;
+	if (!flag)
+		return (0);
+	return (i + ft_strlen(ins));
+}
+
+int		ft_parse_params(t_list *labels, char *f_content, int i, int idx)
+{
+	char	*ins;
+	int		nb_instr;
+
+	nb_instr = -1;
+	while (++nb_instr < g_op_tab[idx].nb_param)
+	{
+		while (ft_iswhitespace(f_content[i]))
+			i++;
+		if (f_content[i] == ',')
+			i++;
+		while (ft_iswhitespace(f_content[i]))
+			i++;
+		if ((ins = ft_strsub(f_content, i,
+				ft_get_param_end(f_content, i) - i)) == NULL)
+			return (0);
+		if (!(i = ft_validate_param(labels, ins,
+			g_op_tab[idx].param[nb_instr], i)))
+		{
+			free(ins);
+			return (0);
+		}
+		free(ins);
+	}
+	return (i);
+}
+
+int		ft_get_instr_len(char *f_content)
+{
+	int i;
+
+	i = 0;
+	while (!ft_iswhitespace(f_content[i]) && f_content[i] != DIRECT_CHAR
+			&& f_content[i])
+		i++;
+	return (i);
+}
+
+int		ft_check_instr(t_list *labels, char *f_content, int i)
+{
+	int idx;
+	int j;
+	int label_size;
+
+	idx = 0;
+	j = 0;
+	label_size = 0;
+	if (!f_content[i])
+		return (i);
+	while (g_op_tab[idx].name)
+	{
+		label_size = ft_get_instr_len(f_content + i);
+		if (!(ft_strncmp(f_content + i, g_op_tab[idx].name, label_size)))
+		{
+			i += ft_strlen(g_op_tab[idx].name);
+			break ;
+		}
+		idx++;
+	}
+	if (idx == 16)
+		return (0);
+	if (!(i = ft_parse_params(labels, f_content, i, idx)))
+		return (0);
+	return (i);
+}
+
+int		ft_is_label(char *f_content, int i)
+{
+	int x;
+
+	x = i;
+	while (ft_iswhitespace(f_content[x]))
+		x++;
+	while (ft_strchr(LABEL_CHARS, f_content[x]))
+		x++;
+	if (f_content[x] == LABEL_CHAR)
+		return (ft_is_label(f_content, x + 1));
+	return (i);
+}
+
+int		ft_check_body(t_list *labels, char *f_content, int i)
+{
+	if (!(f_content + i + 1))
+		return (0);
+	while (f_content[i])
+	{
+		if (f_content[i] == COMMENT_CHAR || f_content[i] == ';')
+		{
+			i = ft_jump_nextline(f_content, i);
+			continue;
+		}
+		if (!ft_iswhitespace(f_content[i]))
+		{
+			i = ft_is_label(f_content, i);
+			while (ft_iswhitespace(f_content[i]))
+				i++;
+			while (f_content[i] == COMMENT_CHAR || f_content[i] == ';')
+				i = ft_jump_nextline(f_content, i);
+			while (ft_iswhitespace(f_content[i]))
+				i++;
+			if (!(i = ft_check_instr(labels, f_content, i)))
+				return (0);
+		}
+		else
+			i++;
+	}
+	return (1);
+}
+
 t_list	*ft_init_label(char *label)
 {
 	t_list		*new;
@@ -123,7 +339,7 @@ int		ft_save_label(t_tasm *tasm, int i, int j)
 			return (0);
 		if ((new = ft_init_label(label)) == NULL)
 			return (0);
-		ft_lstaddtail(&tasm->labels, new);//le mien
+		ft_lstaddtail(&tasm->labels, new);
 	}
 	return (1);
 }
@@ -312,6 +528,213 @@ char		*get_file_name(char *path)
 	return (dot_cor);
 }
 
+void	ft_print_header(t_tasm *tasm)
+{
+	int		len;
+
+	len = ft_strlen(tasm->prog_name);
+	ft_printf("%s%@", tasm->prog_name, tasm->fd);
+	while (++len <= PROG_NAME_LENGTH)
+		write(tasm->fd, "\0", 1);
+	write(tasm->fd, "\0\0\0\0\0\0\0\0", 8);
+	len = ft_strlen(tasm->comment);
+	ft_printf("%s%@", tasm->comment, tasm->fd);
+	while (++len <= COMMENT_LENGTH + 4)
+		write(tasm->fd, "\0", 1);
+}
+
+void	ft_print_magic(int fd)
+{
+	int		magic[4];
+	int		mag;
+	int		i;
+
+	i = -1;
+	mag = COREWAR_EXEC_MAGIC;
+	while (++i < 4)
+	{
+		magic[i] = (unsigned char)mag;
+		mag >>= 8;
+	}
+	while (--i >= 0)
+		ft_printf("%c%@", magic[i], fd);
+}
+
+int		ft_get_param(t_tasm *tasm, t_inst *ins)
+{
+	int		flag;
+	int		p_type;
+
+	flag = 0;
+	p_type = g_op_tab[ins->i_instr].param[ins->nb_instr];
+	if (p_type & T_REG)
+		ins->ocp |= ft_get_reg(ins);
+	if (p_type & T_DIR)
+	{
+		flag = ins->ocp;
+		if (*(ins->ins) == DIRECT_CHAR)
+			ins->ocp |= ft_get_ind(tasm, ins, 0b10);
+		flag = flag != ins->ocp ? 1 : 0;
+	}
+	if (!flag && p_type & T_IND)
+		ins->ocp |= ft_get_ind(tasm, ins, 0b11);
+	return (tasm->idx + ft_strlen(ins->ins));
+}
+
+int		ft_print_params(t_tasm *tasm, t_inst *ins, int i)
+{
+	char	*f_content;
+
+	if (g_op_tab[ins->i_instr].ocp)
+		ins->octet++;
+	ins->nb_instr = -1;
+	ins->ocp = 0;
+	tasm->idx = i;
+	f_content = tasm->f_content;
+	while (++ins->nb_instr < g_op_tab[ins->i_instr].nb_param)
+	{
+		while (ft_iswhitespace(f_content[tasm->idx]))
+			tasm->idx++;
+		if (f_content[tasm->idx] == SEPARATOR_CHAR)
+			tasm->idx++;
+		while (ft_iswhitespace(f_content[tasm->idx]))
+			tasm->idx++;
+		if ((ins->ins = ft_strsub(f_content, tasm->idx,
+				ft_get_param_end(f_content, tasm->idx) - tasm->idx)) == NULL)
+			return (0);
+		tasm->idx = ft_get_param(tasm, ins);
+		free(ins->ins);
+	}
+	ft_print_param(tasm, ins);
+	return (tasm->idx);
+}
+
+int		ft_get_instr(t_tasm *tasm, int i, t_inst *ins)
+{
+	char	*f_content;
+	int		idx;
+	int		label_size;
+
+	idx = 0;
+	f_content = tasm->f_content;
+	label_size = 0;
+	if (!f_content[i])
+		return (i);
+	while (g_op_tab[idx].name)
+	{
+		label_size = ft_get_instr_len(f_content + i);
+		if (!(ft_strncmp(f_content + i, g_op_tab[idx].name, label_size)))
+		{
+			i += ft_strlen(g_op_tab[idx].name);
+			break ;
+		}
+		idx++;
+	}
+	ins->octet += ft_printf("%c%@", idx + 1, tasm->fd);
+	ins->ins_octet = ins->octet;
+	ins->i_instr = idx;
+	if (!(i = ft_print_params(tasm, ins, i)))
+		return (0);
+	return (i);
+}
+
+int		ft_get_label_pos(t_tasm *tasm, t_inst *ins, int i)
+{
+	t_list		*tmp;
+	t_label		*content;
+	int			x;
+
+	tmp = tasm->labels;
+	while (ft_iswhitespace(tasm->f_content[i]))
+		i++;
+	while (tmp)
+	{
+		content = tmp->content;
+		x = ft_strlen(content->label);
+		if (!ft_strncmp(content->label, tasm->f_content + i, x))
+		{
+			if (tasm->f_content[i + x - 1] != LABEL_CHAR)
+				return (i);
+			content->addr = ins->octet + 1;
+			return (ft_get_label_pos(tasm, ins, x + i));
+		}
+		tmp = tmp->next;
+	}
+	return (i);
+}
+
+void	ft_print_body(t_tasm *tasm, char *f_content, int i)
+{
+	t_inst	ins;
+
+	ins.octet = 0;
+	while (f_content[i])
+	{
+		if ((f_content[i] == COMMENT_CHAR || f_content[i] == ';')
+			&& (i = ft_jump_nextline(f_content, i)))
+			continue;
+		if (!ft_iswhitespace(f_content[i]))
+		{
+			i = ft_get_label_pos(tasm, &ins, i);
+			while (ft_iswhitespace(f_content[i]))
+				i++;
+			while (f_content[i] == COMMENT_CHAR || f_content[i] == ';')
+				i = ft_jump_nextline(f_content, i);
+			while (ft_iswhitespace(f_content[i]))
+				i++;
+			if (!(i = ft_get_instr(tasm, i, &ins)))
+				return ;
+		}
+		else
+			i++;
+	}
+	tasm->prog_size = ins.octet;
+}
+
+void	print_label_addr(t_tasm *tasm, t_labdir *labdir)
+{
+	t_list	*tmp;
+	t_label	*label;
+	int		val;
+
+	tmp = tasm->labels;
+	while (tmp)
+	{
+		label = tmp->content;
+		if (!ft_strcmp(labdir->label, label->label))
+		{
+			val = label->addr - labdir->instr_addr;
+			ft_printf("%c%c%@", val >> 8, val, tasm->fd);
+			if (lseek(tasm->fd, -(labdir->addr + 1), SEEK_CUR) == -1)
+				return ;
+			return ;
+		}
+		tmp = tmp->next;
+	}
+}
+
+void	ft_complete_file(t_tasm *tasm)
+{
+	t_list		*tmp;
+	t_labdir	*content;
+
+	if (lseek(tasm->fd, PROG_NAME_LENGTH + 8, SEEK_SET) == -1)
+		return ;
+	ft_printf("%c%c%c%c%@", (unsigned)tasm->prog_size >> 24,
+		tasm->prog_size >> 16, tasm->prog_size >> 8, tasm->prog_size, tasm->fd);
+	if (lseek(tasm->fd, COMMENT_LENGTH + 4, SEEK_CUR) == -1)
+		return ;
+	tmp = tasm->labdirs;
+	while (tmp)
+	{
+		content = tmp->content;
+		if (lseek(tasm->fd, content->addr - 1, SEEK_CUR) == -1)
+			return ;
+		print_label_addr(tasm, content);
+		tmp = tmp->next;
+	}
+}
+
 int 		creat_point_cor(t_tasm *tasm, char *path, int i)
 {
 	char 	*dot_cor;
@@ -321,10 +744,10 @@ int 		creat_point_cor(t_tasm *tasm, char *path, int i)
 	if ((tasm->fd = open(dot_cor, O_CREAT | O_WRONLY | O_TRUNC, 0755)) == -1)
 		return (0);
 	free(dot_cor);
-	(void)i;
-	/*
-		manque la suite
-	*/
+	ft_print_magic(tasm->fd);
+	ft_print_header(tasm);
+	ft_print_body(tasm, tasm->f_content, i);
+	ft_complete_file(tasm);
 	return (1);
 }
 

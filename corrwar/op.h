@@ -6,7 +6,7 @@
 /*   By: niludwig <niludwig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/03/21 02:26:48 by niludwig          #+#    #+#             */
-/*   Updated: 2017/03/21 02:27:40 by niludwig         ###   ########.fr       */
+/*   Updated: 2017/04/14 00:29:49 by niludwig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,20 @@
 /*
 **
 */
+
+typedef struct			s_op
+{
+	char				*name;
+	int					nb_param;
+	int					param[3];
+	int					op_code;
+	int					nb_cycles;
+	char				*description;
+	int					ocp;
+	int					label_size;
+}						t_op;
+
+extern t_op				g_op_tab[];
 
 typedef char	t_arg_type;
 
