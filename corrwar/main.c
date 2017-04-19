@@ -533,12 +533,12 @@ void	ft_print_header(t_tasm *tasm)
 	int		len;
 
 	len = ft_strlen(tasm->prog_name);
-	ft_printf("%s%@", tasm->prog_name, tasm->fd);
+	ft_putstr_fd(tasm->prog_name, tasm->fd);
 	while (++len <= PROG_NAME_LENGTH)
 		write(tasm->fd, "\0", 1);
 	write(tasm->fd, "\0\0\0\0\0\0\0\0", 8);
 	len = ft_strlen(tasm->comment);
-	ft_printf("%s%@", tasm->comment, tasm->fd);
+	ft_putstr_fd(tasm->comment, tasm->fd);
 	while (++len <= COMMENT_LENGTH + 4)
 		write(tasm->fd, "\0", 1);
 }
@@ -557,7 +557,7 @@ void	ft_print_magic(int fd)
 		mag >>= 8;
 	}
 	while (--i >= 0)
-		ft_printf("%c%@", magic[i], fd);
+		ft_putchar_fd(magic[i], fd);
 }
 
 int		ft_get_param(t_tasm *tasm, t_inst *ins)
@@ -630,7 +630,7 @@ int		ft_get_instr(t_tasm *tasm, int i, t_inst *ins)
 		}
 		idx++;
 	}
-	ins->octet += ft_printf("%c%@", idx + 1, tasm->fd);
+	ins->octet += ft_putchar_fd(idx + 1, tasm->fd);
 	ins->ins_octet = ins->octet;
 	ins->i_instr = idx;
 	if (!(i = ft_print_params(tasm, ins, i)))
@@ -704,7 +704,8 @@ void	print_label_addr(t_tasm *tasm, t_labdir *labdir)
 		if (!ft_strcmp(labdir->label, label->label))
 		{
 			val = label->addr - labdir->instr_addr;
-			ft_printf("%c%c%@", val >> 8, val, tasm->fd);
+			ft_putchar_fd(val >> 8, tasm->fd);
+			ft_putchar_fd(val, tasm->fd);
 			if (lseek(tasm->fd, -(labdir->addr + 1), SEEK_CUR) == -1)
 				return ;
 			return ;
@@ -720,8 +721,10 @@ void	ft_complete_file(t_tasm *tasm)
 
 	if (lseek(tasm->fd, PROG_NAME_LENGTH + 8, SEEK_SET) == -1)
 		return ;
-	ft_printf("%c%c%c%c%@", (unsigned)tasm->prog_size >> 24,
-		tasm->prog_size >> 16, tasm->prog_size >> 8, tasm->prog_size, tasm->fd);
+	ft_putchar_fd((unsigned)tasm->prog_size >> 24, tasm->fd);
+	ft_putchar_fd((unsigned)tasm->prog_size >> 16, tasm->fd);
+	ft_putchar_fd((unsigned)tasm->prog_size >> 8, tasm->fd);
+	ft_putchar_fd((unsigned)tasm->prog_size, tasm->fd);
 	if (lseek(tasm->fd, COMMENT_LENGTH + 4, SEEK_CUR) == -1)
 		return ;
 	tmp = tasm->labdirs;
@@ -758,16 +761,16 @@ int main(int ac, char **av)
 
 	if (!(tasm = (t_tasm*)malloc(sizeof(t_tasm))))
 		exit_msg("ERROR: Malloc failed\n");
-	if (!(tasm->f_content = get_file_content(av[ac - 1])))
+	if (!(tasm->f_content = get_file_content(av[ac - 1])))// recupere le fd et le nom du .cor
 		exit_msg(ft_strjoin("ERROR: Can't read source file", av[ac - 1]));
-	tasm->labels = NULL;
+	tasm->labels = NULL;// init les list
 	tasm->labdirs = NULL;
-	if (!(i = asm_parse_header(tasm)))
+	if (!(i = asm_parse_header(tasm)))// recupe et check si le nom et le comment sont au format
 		exit_msg("ERROR: Error in header\n");
-	i = tasm->idx;
-	if (!(asm_parse_body(tasm)))
+	i = tasm->idx;// recupere l index
+	if (!(asm_parse_body(tasm)))// check si les commande sont valide
 		exit_msg("ERROR: Error in body\n");
-	if (!creat_point_cor(tasm, av[ac - 1], i))
+	if (!creat_point_cor(tasm, av[ac - 1], i))//creation du .cor
 		exit_msg("ERROR: Can't create the .cor file\n");
 	ft_printf("Writing output program to %.*s.cor\n",
 					ft_strlen(av[ac - 1]) - 2, av[ac - 1]);
