@@ -6,7 +6,7 @@
 /*   By: niludwig <niludwig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/12 15:12:10 by niludwig          #+#    #+#             */
-/*   Updated: 2017/06/12 15:29:05 by niludwig         ###   ########.fr       */
+/*   Updated: 2017/06/12 20:50:12 by niludwig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void	print_label_addr(t_asm *asmb, t_labdir *labdir)
 		if (!ft_strcmp(labdir->label, label->label))
 		{
 			val = label->addr - labdir->instr_addr;
-			ft_printf("%c%c%@", val >> 8, val, asmb->fd);
+			ft_putchar_fd_two(val >> 8, val, asmb->fd);
 			if (lseek(asmb->fd, -(labdir->addr + 1), SEEK_CUR) == -1)
 				return ;
 			return ;
@@ -41,7 +41,7 @@ void	ft_complete_file(t_asm *asmb)
 
 	if (lseek(asmb->fd, PROG_NAME_LENGTH + 8, SEEK_SET) == -1)
 		return ;
-	ft_printf("%c%c%c%c%@", (unsigned)asmb->prog_size >> 24,
+	ft_putchar_fd_qutro((unsigned)asmb->prog_size >> 24,
 		asmb->prog_size >> 16, asmb->prog_size >> 8, asmb->prog_size, asmb->fd);
 	if (lseek(asmb->fd, COMMENT_LENGTH + 4, SEEK_CUR) == -1)
 		return ;

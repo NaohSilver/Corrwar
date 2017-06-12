@@ -6,7 +6,7 @@
 /*   By: niludwig <niludwig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/12 15:13:15 by niludwig          #+#    #+#             */
-/*   Updated: 2017/06/12 15:35:28 by niludwig         ###   ########.fr       */
+/*   Updated: 2017/06/12 20:53:30 by niludwig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ int		ft_get_instr(t_asm *asmb, int i, t_inst *ins)
 		}
 		idx++;
 	}
-	ins->octet += ft_printf("%c%@", idx + 1, asmb->fd);
+	ins->octet += ft_putchar_fd_one(idx + 1, asmb->fd);
 	ins->ins_octet = ins->octet;
 	ins->i_instr = idx;
 	if (!(i = ft_print_params(asmb, ins, i)))

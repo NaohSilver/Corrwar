@@ -6,7 +6,7 @@
 /*   By: niludwig <niludwig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/04/06 14:27:27 by niludwig          #+#    #+#             */
-/*   Updated: 2017/06/12 19:21:19 by niludwig         ###   ########.fr       */
+/*   Updated: 2017/06/12 21:00:31 by niludwig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,5 +92,8 @@ int				ft_return(char *int_min, char *int_max, int ret);
 char			*ft_strjoin_n_free(char *s1, char *s2);
 int				ft_iswhitespace(char c);
 char			*ft_get_file_content(char *file_name);
+int				ft_putchar_fd_one(char c, int fd);
+void			ft_putchar_fd_two(char c, char c2, int fd);
+void			ft_putchar_fd_quatro(char c, char c2, char c3, char c4, int fd);
 
 #endif

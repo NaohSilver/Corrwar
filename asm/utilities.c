@@ -6,7 +6,7 @@
 /*   By: niludwig <niludwig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/12 15:14:25 by niludwig          #+#    #+#             */
-/*   Updated: 2017/06/12 19:20:21 by niludwig         ###   ########.fr       */
+/*   Updated: 2017/06/12 21:05:05 by niludwig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 void	ft_exit_msg(char *msg)
 {
-	ft_printf("%s\n%@", msg, 2);
+	ft_putstr_fd(msg, 2);
 	exit(1);
 }
 

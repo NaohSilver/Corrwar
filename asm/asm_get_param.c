@@ -6,7 +6,7 @@
 /*   By: niludwig <niludwig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/12 15:12:38 by niludwig          #+#    #+#             */
-/*   Updated: 2017/06/12 15:35:06 by niludwig         ###   ########.fr       */
+/*   Updated: 2017/06/12 20:52:26 by niludwig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,17 +18,17 @@ void	ft_print_param(t_asm *asmb, t_inst *ins)
 
 	i = -1;
 	if (g_op_tab[ins->i_instr].ocp)
-		ft_printf("%c%@", ins->ocp, asmb->fd);
+		ft_putchar_fd(ins->ocp, asmb->fd);
 	while (++i < ins->nb_instr)
 	{
 		if (((unsigned)ins->ocp >> (6 - i * 2) & 0b11) == 0b01)
-			ft_printf("%c%@", ins->param[i], asmb->fd);
+			ft_putchar_fd(ins->param[i], asmb->fd);
 		else if (((unsigned)ins->ocp >> (6 - i * 2) & 0b11) == 0b11
 				|| g_op_tab[ins->i_instr].label_size)
-			ft_printf("%c%c%@", (unsigned)ins->param[i] >> 8,
+			ft_putchar_fd_two((unsigned)ins->param[i] >> 8,
 									ins->param[i], asmb->fd);
 		else
-			ft_printf("%c%c%c%c%@", (unsigned)ins->param[i] >> 24,
+			ft_putchar_fd_quatro((unsigned)ins->param[i] >> 24,
 				ins->param[i] >> 16, ins->param[i] >> 8, ins->param[i],
 				asmb->fd);
 	}
